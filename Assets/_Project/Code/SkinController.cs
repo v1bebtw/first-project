@@ -11,7 +11,12 @@ namespace Project.Code
 
         private void Awake()
         {
-            _imageBG.color = _colorItems[Random.Range(0, _colorItems.Length) - 1].color;
+            _imageBG.color = _colorItems[Random.Range(0, _colorItems.Length -1)].color;
+        }
+
+        public void ChangeColor()
+        {
+            _imageBG.color = _colorItems[Random.Range(0, _colorItems.Length - 1)].color;
         }
     }
 }
