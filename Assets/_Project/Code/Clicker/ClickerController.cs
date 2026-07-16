@@ -1,47 +1,61 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Project.Code
 {
     public class ClickerController : MonoBehaviour
     {
+        [SerializeField] private Observer _observer;
         [SerializeField] private SkinController _skinController;
+        
         [SerializeField] private TMP_Text _textScore;
-        [SerializeField] private TMP_Text _textOfCompliment;
+        [SerializeField] private TMP_Text _textCompliment;
+        
         [SerializeField] private Button _button;
         [SerializeField] private Button _resetButton;
-        [SerializeField] private int _score = 30;
+        [SerializeField] private Button _buyButton;
+        
+        [SerializeField] private int _range = 100;
         [SerializeField] private string[] _compliments;
-    
-        private int _scoreValue;
-        private int _lastTrigger = 0;
+        
+        private BankService _bankService;
+        private int _lastPoint = 0;
+        private int price = 100;
 
         private void Awake()
         {
+            _bankService = _observer.GetBank();
+            
             UpdateTextScore();
+            
             _button.onClick.AddListener(UpdateScore);
             _resetButton.onClick.AddListener(ResetScore);
+            _buyButton.onClick.AddListener(UpdateScorePerClick);
         }
-    
 
+        private void UpdateScorePerClick()
+        {
+            if (_bankService.GetScore() >= price)
+            {
+                _bankService.UpdateScorePerClick(price);
+                UpdateTextScore();
+            }
+        }
+        
         private void UpdateScore()
         {
-            _scoreValue += _score;
+            _bankService.SetScore();
             
-            if (_scoreValue - _lastTrigger >= 100)
+            if (_bankService.GetScore() - _lastPoint >= _range)
             {
                 ChangeColor();
-                ChangeText();
-                _lastTrigger += 100;
+                _textCompliment.SetText(_compliments[Random.Range(0, _compliments.Length - 1)]);
+                _lastPoint += _range;
             }
             
             UpdateTextScore();
-        }
-
-        private void ChangeText()
-        {
-            _textOfCompliment.SetText(_compliments[Random.Range(0, _compliments.Length - 1)]);
         }
 
         private void ChangeColor()
@@ -51,13 +65,13 @@ namespace Project.Code
 
         private void ResetScore()
         {
-            _scoreValue = 0;
+            _bankService.ResetScore();
             UpdateTextScore();
         }
     
         private void UpdateTextScore()
         {
-            _textScore.SetText($"${_scoreValue.ToString()}");
+            _textScore.SetText($"${_bankService.GetScore().ToString()}");
         }
     
         private void OnDestroy()
